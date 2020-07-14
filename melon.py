@@ -84,7 +84,7 @@ class Melon(commands.Bot):
                         break
 
 
-extensions = []
+extensions = ["cogs.util_cog"]
 
 if __name__ == "__main__":
     bot = Melon()
