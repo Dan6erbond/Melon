@@ -57,9 +57,10 @@ class PollCog(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
         try:
-            msg = await bot.get_channel(int(payload.data["channel_id"])).fetch_message(payload.message_id)
+            msg = await self.bot.get_channel(int(payload.data["channel_id"])).fetch_message(payload.message_id)
         except Exception as e:
             await self.bot.send_error(e)
+            return
 
         if msg:
             channel = session.query(Channel).filter(
