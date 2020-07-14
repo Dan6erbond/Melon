@@ -9,7 +9,7 @@ from discord.ext import commands
 from PIL import Image
 
 import helpers.rgb as rgb
-from const import EMOJIS
+from const import EMOJIS, VERSION
 
 if TYPE_CHECKING:
     from melon import Melon
@@ -98,6 +98,41 @@ class UtilCog(commands.Cog):
             return
 
         await ctx.send("```\n{}\n```".format(message.content.replace("```", r"\`\`\`")))
+
+    @commands.command(help="Quote a message and displays the reactions in a minified version if there are any.")
+    async def quote(self, ctx: commands.Context, id: int = 0, channel: str = ""):
+        if not id:
+            async for msg in ctx.channel.history(limit=2):
+                message = msg
+        else:
+            channel = re.search(r"(\d{18})", channel)
+            channel = bot.get_channel(int(channel.group(1))) if channel else ctx.channel
+            message = await self.bot.get_message(id, channel)
+
+        if not message:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Couldn't find the message!")
+            return
+
+        if not message.channel.permissions_for(message.channel.guild.get_member(ctx.author.id)).read_messages:
+            return
+
+        embed = self.bot.get_embed()
+        embed.color = discord.Colour(0).from_rgb(0, 0, 0)
+        embed.timestamp = message.created_at
+        embed.title = f"Message by {message.author}"
+        embed.url = message.jump_url
+        embed.description = message.content
+
+        reacts = list()
+        for reaction in message.reactions:
+            s = reaction.emoji if isinstance(reaction.emoji, str) else f"<:{reaction.emoji.name}:{reaction.emoji.id}>"
+            reacts.append(f"{s} {reaction.count}")
+
+        if reacts:
+            reacts = ", ".join(reacts)
+            embed.add_field(name="Reactions", value=reacts, inline=False)
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot: 'Melon'):

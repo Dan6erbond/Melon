@@ -7,6 +7,8 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+from const import VERSION
+
 
 class Melon(commands.Bot):
     def __init__(self, **options):
@@ -27,6 +29,15 @@ class Melon(commands.Bot):
         else:
             await ctx.message.channel.send(error)
             print(traceback.format_exc())
+
+    def get_embed(self):
+        embed = discord.Embed(
+            colour=discord.Colour(0).from_rgb(255, 85, 85)
+        )
+        embed.set_footer(text=f"Melon v{VERSION}", icon_url=self.user.avatar_url)
+        embed.timestamp = datetime.utcnow()
+
+        return embed
 
     async def get_message(self, id: int, channel: discord.ChannelType = None):
         try:
