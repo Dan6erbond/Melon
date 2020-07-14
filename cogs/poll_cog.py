@@ -154,6 +154,32 @@ class PollCog(commands.Cog):
         else:
             await ctx.send(f"<:{EMOJIS['XMARK']}> That emoji is already set for this channel!")
 
+    @commands.command(help="Remove an emoji from the list of emojis that are added to this channel's messages.",
+                      aliases=["removeemoji", "rememoji"])
+    @commands.has_permissions(manage_channels=True)
+    async def remoji(self, ctx: commands.Context, emoji: str):
+        member = ctx.guild.get_member(bot.user.id)
+        try:
+            await ctx.message.remove_reaction(emoji, member)
+        except BaseException:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            return
+
+        emoji = session.query(ChannelEmoji).filter(
+            and_(
+                ChannelEmoji.channel_id == ctx.channel.id,
+                ChannelEmoji.emoji == emoji))
+
+        if emoji:
+            emoji.delete()
+            session.commit()
+            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully removed {emoji} from the list of emojis to add in this channel!", delete_after=3)
+        else:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> Couldn't find {emoji} in the list of emojis to add in this channel!")
+
+        async for msg in ctx.history(limit=None):
+            await msg.remove_reaction(emoji, member)
+
 
 def setup(bot):
     bot.add_cog(PollCog(bot))
