@@ -85,8 +85,8 @@ class PollCog(commands.Cog):
             await ctx.send(msg)
             return
 
-        emoji = ChannelEmoji(channel_id=channel.channel_id, emoji=emoji, default_emoji=True)
-        session.add(emoji)
+        channel_emoji = ChannelEmoji(channel_id=channel.channel_id, emoji=emoji, default_emoji=True)
+        session.add(channel_emoji)
         session.commit()
 
         await ctx.send(f"<{EMOJIS['CHECK']}> Added {emoji} to the list of default emojis for this poll channel!", delete_after=3)
@@ -108,13 +108,13 @@ class PollCog(commands.Cog):
             await ctx.send(msg)
             return
 
-        emoji = session.query(ChannelEmoji).filter(
+        channel_emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
                 ChannelEmoji.emoji == emoji)).first()
 
-        if emoji:
-            emoji.delete()
+        if channel_emoji:
+            channel_emoji.delete()
             session.commit()
             await ctx.send(f"<{EMOJIS['CHECK']}> Removed {emoji} from the list of default emojis for this poll channel!", delete_after=3)
             await ctx.message.delete()
@@ -138,14 +138,14 @@ class PollCog(commands.Cog):
             await ctx.send(msg)
             return
 
-        emoji = session.query(ChannelEmoji).filter(
+        channel_emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
                 ChannelEmoji.emoji == emoji)).first()
 
-        if not emoji:
-            emoji = ChannelEmoji(channel_id=ctx.channel.id, emoji=emoji)
-            session.add(emoji)
+        if not channel_emoji:
+            channel_emoji = ChannelEmoji(channel_id=ctx.channel.id, emoji=emoji)
+            session.add(channel_emoji)
             session.commit()
             await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added {emoji} to the list of emojis to add in this channel!", delete_after=3)
 
@@ -165,13 +165,13 @@ class PollCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
             return
 
-        emoji = session.query(ChannelEmoji).filter(
+        channel_emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
                 ChannelEmoji.emoji == emoji)).first()
 
-        if emoji:
-            emoji.delete()
+        if channel_emoji:
+            channel_emoji.delete()
             session.commit()
             await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed {emoji} from the list of emojis to add in this channel!", delete_after=3)
         else:
