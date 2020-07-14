@@ -28,6 +28,26 @@ class Melon(commands.Bot):
             await ctx.message.channel.send(error)
             print(traceback.format_exc())
 
+    async def get_message(self, id: int, channel: discord.ChannelType = None):
+        try:
+            message = await channel.fetch_message(id)
+            return message
+        except BaseException:
+            for channel in channel.guild.channels:
+                try:
+                    message = await channel.fetch_message(id)
+                    return message
+                except BaseException:
+                    continue
+            for guild in self.guilds:
+                for channel in guild.channels:
+                    try:
+                        message = await channel.fetch_message(id)
+                        return message
+                    except BaseException:
+                        continue
+        return None
+
     async def handle_poll(self, message: discord.Message):
         if message.author.bot:
             return
