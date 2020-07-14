@@ -17,7 +17,7 @@ class ReactionRoleCog(commands.Cog):
             return
 
         emoji = payload.emoji.name if not payload.emoji.is_custom_emoji(
-        ) else f":{payload.emoji.name}:{payload.emoji.id}"
+        ) else f"<:{payload.emoji.name}:{payload.emoji.id}>"
 
         react_role = session.query(ReactionRole).filter(
             and_(
@@ -39,7 +39,7 @@ class ReactionRoleCog(commands.Cog):
             return
 
         emoji = payload.emoji.name if not payload.emoji.is_custom_emoji(
-        ) else f":{payload.emoji.name}:{payload.emoji.id}"
+        ) else f"<:{payload.emoji.name}:{payload.emoji.id}>"
 
         react_role = session.query(ReactionRole).filter(
             and_(
@@ -60,7 +60,6 @@ class ReactionRoleCog(commands.Cog):
     async def addreactrole(self, ctx: commands.Context, emoji: str, role: discord.Role, msg: int, channel: discord.TextChannel = None):
         channel = ctx.channel if channel is None else channel
         msg = await channel.fetch_message(msg)
-        emoji = emoji.replace("<", "").replace(">", "")
 
         if msg:
             await msg.add_reaction(emoji)
@@ -83,7 +82,6 @@ class ReactionRoleCog(commands.Cog):
     async def remreactrole(self, ctx, emoji: str, msg: int, channel: discord.TextChannel = None):
         channel = ctx.channel if channel is None else channel
         msg = await channel.fetch_message(msg)
-        emoji = emoji.replace("<", "").replace(">", "")
 
         if msg:
             try:
