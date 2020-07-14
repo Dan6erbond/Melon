@@ -111,7 +111,7 @@ class PollCog(commands.Cog):
         emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
-                ChannelEmoji.emoji == emoji))
+                ChannelEmoji.emoji == emoji)).first()
 
         if emoji:
             emoji.delete()
@@ -141,7 +141,7 @@ class PollCog(commands.Cog):
         emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
-                ChannelEmoji.emoji == emoji))
+                ChannelEmoji.emoji == emoji)).first()
 
         if not emoji:
             emoji = ChannelEmoji(channel_id=ctx.channel.id, emoji=emoji)
@@ -168,7 +168,7 @@ class PollCog(commands.Cog):
         emoji = session.query(ChannelEmoji).filter(
             and_(
                 ChannelEmoji.channel_id == ctx.channel.id,
-                ChannelEmoji.emoji == emoji))
+                ChannelEmoji.emoji == emoji)).first()
 
         if emoji:
             emoji.delete()
