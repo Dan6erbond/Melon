@@ -74,7 +74,7 @@ def to_grid(rgbs, block_size = 200):
     image = Image.new("RGBA", (len(grid[0])*block_size, len(grid)*block_size), (0,0,0,0))
     draw = ImageDraw.Draw(image)
     font_size = int(block_size / 10)
-    path = os.path.join(os.getcwd(), "public", "Roboto.ttf")
+    path = os.path.join(os.getcwd(), "assets", "Roboto.ttf")
     font = ImageFont.truetype(path, font_size)
 
     for i in range(0, len(grid)):
