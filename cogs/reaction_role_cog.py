@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from sqlalchemy.sql.expression import and_
 
+from const import EMOJIS
 from database.database import session
 from database.models import ReactionRole
 
@@ -53,6 +54,29 @@ class ReactionRoleCog(commands.Cog):
                 await member.remove_roles(role)
             except Exception as e:
                 self.bot.send_error(e)
+
+    @commands.command(help="Adds a reaction-role to a message.")
+    @commands.has_permissions(manage_roles=True)
+    async def addreactrole(self, ctx: commands.Context, emoji: str, role: discord.Role, msg: int, channel: discord.TextChannel = None):
+        channel = ctx.channel if channel is None else channel
+        msg = await channel.fetch_message(msg)
+        emoji = emoji.replace("<", "").replace(">", "")
+
+        if msg is not None:
+            await msg.add_reaction(emoji)
+
+            react_role = session.query(ReactionRole).filter(
+                and_(ReactionRole.message_id == msg.id, ReactionRole.emoji == emoji)).first()
+
+            if react_role:
+                await ctx.send(f"<{EMOJIS['XMARK']}> This emoji is already being used as a reaction-role on this message!", delete_after=3)
+            else:
+                react_role = ReactionRole(message_id=msg.id, emoji=emoji)
+                session.add(react_role)
+                session.commit()
+
+                await ctx.message.delete()
+                await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added reaction-role!", delete_after=3)
 
 
 def setup(bot: 'Melon'):
