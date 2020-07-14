@@ -80,7 +80,7 @@ class PollCog(commands.Cog):
                     await msg.add_reaction(emoji.emoji)
             await self.handle_poll(msg)
 
-        await bot.process_commands(msg)
+        await self.bot.process_commands(msg)
 
     @commands.command(help="Add a default emoji that is added to poll channels")
     @commands.has_permissions(manage_channels=True)
