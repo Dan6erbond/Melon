@@ -1,4 +1,7 @@
+import asyncio
 import os
+import random
+import re
 from typing import TYPE_CHECKING
 
 import discord
@@ -6,13 +9,14 @@ from discord.ext import commands
 from PIL import Image
 
 import helpers.rgb as rgb
+from const import EMOJIS
 
 if TYPE_CHECKING:
-    from main import Melon
+    from melon import Melon
 
 
 class UtilCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: 'Melon'):
         self.bot = bot
 
     @commands.command(help="Get the prominent colors in an image.", aliases=["colour"])
@@ -49,6 +53,51 @@ class UtilCog(commands.Cog):
         res = grid.save(new_path)
 
         await ctx.send("", file=discord.File(new_path))
+
+    @commands.command(help="Get a random option from a selection (Use '-' to indicate a range between numbers and spaces to separate options).")
+    async def rand(self, ctx: commands.Context, *, options: str = ""):
+        opts = list()
+        if options != "":
+            if "-" in options:
+                try:
+                    int1 = int(options.split("-")[0].strip())
+                    int2 = int(options.split("-")[1].strip())
+                    opts = list(range(int1, int2 + 1))
+                except Exception as e:
+                    self.bot.send_error(e)
+            if len(opts) == 0:
+                opts = options.split(" ")
+        else:
+            opts = ["HEADS", "TAILS"]
+
+        option = opts[random.randint(0, len(opts) - 1)]
+
+        msg = await ctx.send("⏱ 3")
+        await asyncio.sleep(1)
+        await msg.edit(content="⏱ 2")
+        await asyncio.sleep(1)
+        await msg.edit(content="⏱ 1")
+        await asyncio.sleep(1)
+        await msg.edit(content="{}!".format(option))
+
+    @commands.command(help="Get the last message sent to this channel, or one with a given ID in this channel, in it's raw form.")
+    async def rawmsg(self, ctx: commands.Context, id: int = 0, channel: str = ""):
+        if not id:
+            async for msg in ctx.channel.history(limit=2):
+                message = msg
+        else:
+            channel = re.search(r"(\d{18})", channel)
+            channel = bot.get_channel(int(channel.group(1))) if channel else ctx.channel
+            message = await self.bot.get_message(id, channel)
+
+        if not message:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Couldn't find the message!")
+            return
+
+        if not message.channel.permissions_for(message.channel.guild.get_member(ctx.author.id)).read_messages:
+            return
+
+        await ctx.send("```\n{}\n```".format(message.content.replace("```", r"\`\`\`")))
 
 
 def setup(bot: 'Melon'):
