@@ -17,7 +17,7 @@ class PollCog(commands.Cog):
     def __init__(self, bot: 'Melon'):
         self.bot = bot
 
-    async def handle_poll(self, message: discord.Message):
+    async def handle_poll(self, message: discord.Message, channel: Channel):
         if message.author.bot:
             return
 
@@ -41,18 +41,28 @@ class PollCog(commands.Cog):
                 await message.add_reaction(e)
                 count += 1
             except Exception as _e:
-                print(e, _e)
+                self.bot.send_error(e)
+
+        for emoji in channel.emojis:
+            if not emoji.default_emoji:
+                try:
+                    await message.add_reaction(emoji.emoji)
+                    count += 1
+                except Exception as _e:
+                    self.bot.send_error(e)
 
         if count == 0:
-            channel = session.query(Channel).filter(Channel.channel_id == message.channel.id).first()
-            if channel:
-                found = False
-                for emoji in channel.emojis:
-                    if emoji.default_emoji:
+            found = False
+            for emoji in channel.emojis:
+                if emoji.default_emoji:
+                    found = True
+                    try:
                         await message.add_reaction(emoji.emoji)
-                if not found:
-                    await message.add_reaction("👍")
-                    await message.add_reaction("👎")
+                    except Exception as e:
+                        self.bot.send_error(e)
+            if not found:
+                await message.add_reaction("👍")
+                await message.add_reaction("👎")
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
@@ -65,7 +75,7 @@ class PollCog(commands.Cog):
         if msg:
             channel = session.query(Channel).filter(Channel.channel_id == msg.channel.id).first()
             if channel and channel.poll_channel:
-                await self.handle_poll(msg)
+                await self.handle_poll(msg, channel)
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
@@ -75,10 +85,7 @@ class PollCog(commands.Cog):
         channel = session.query(Channel).filter(Channel.channel_id == msg.channel.id).first()
 
         if channel and channel.poll_channel:
-            for emoji in channel.emojis:
-                if not emoji.default_emoji:
-                    await msg.add_reaction(emoji.emoji)
-            await self.handle_poll(msg)
+            await self.handle_poll(msg, channel)
 
         await self.bot.process_commands(msg)
 
