@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import discord
@@ -137,3 +138,7 @@ class UtilCog(commands.Cog):
 
 def setup(bot: 'Melon'):
     bot.add_cog(UtilCog(bot))
+    path = os.path.join(os.getcwd(), "public", "attachments")
+    Path(path).mkdir(parents=True, exist_ok=True)
+    path = os.path.join(os.getcwd(), "public", "results")
+    Path(path).mkdir(parents=True, exist_ok=True)
