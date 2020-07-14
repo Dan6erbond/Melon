@@ -62,21 +62,45 @@ class ReactionRoleCog(commands.Cog):
         msg = await channel.fetch_message(msg)
         emoji = emoji.replace("<", "").replace(">", "")
 
-        if msg is not None:
+        if msg:
             await msg.add_reaction(emoji)
 
             react_role = session.query(ReactionRole).filter(
                 and_(ReactionRole.message_id == msg.id, ReactionRole.emoji == emoji)).first()
 
-            if react_role:
-                await ctx.send(f"<{EMOJIS['XMARK']}> This emoji is already being used as a reaction-role on this message!", delete_after=3)
-            else:
+            if not react_role:
                 react_role = ReactionRole(message_id=msg.id, emoji=emoji)
                 session.add(react_role)
                 session.commit()
 
                 await ctx.message.delete()
                 await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added reaction-role!", delete_after=3)
+            else:
+                await ctx.send(f"<{EMOJIS['XMARK']}> This emoji is already being used as a reaction-role on this message!", delete_after=3)
+
+    @commands.command(help="Adds a reaction-role to a message.")
+    @commands.has_permissions(manage_roles=True)
+    async def remreactrole(self, ctx, emoji: str, msg: int, channel: discord.TextChannel = None):
+        channel = ctx.channel if channel is None else channel
+        msg = await channel.fetch_message(msg)
+        emoji = emoji.replace("<", "").replace(">", "")
+
+        if msg:
+            try:
+                await msg.remove_reaction(emoji, self.bot.user)
+            except Exception as e:
+                print(e)
+                return
+
+            react_role = session.query(ReactionRole).filter(
+                and_(ReactionRole.message_id == msg.id, ReactionRole.emoji == emoji)).first()
+
+            if react_role:
+                session.delete(react_role)
+                session.commit()
+                await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed reaction-role!".format(check), delete_after=3)
+            else:
+                await ctx.send(f"<{EMOJIS['XMARK']}> Couldn't find reaction-role in the DB!", delete_after=3)
 
 
 def setup(bot: 'Melon'):
