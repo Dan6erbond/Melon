@@ -7,6 +7,8 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+from const import VERSION
+
 
 class Melon(commands.Bot):
     def __init__(self, **options):
@@ -27,6 +29,36 @@ class Melon(commands.Bot):
         else:
             await ctx.message.channel.send(error)
             print(traceback.format_exc())
+
+    @property
+    def embed(self):
+        embed = discord.Embed(
+            colour=discord.Colour(0).from_rgb(255, 85, 85)
+        )
+        embed.set_footer(text=f"Melon v{VERSION}", icon_url=self.user.avatar_url)
+        embed.timestamp = datetime.utcnow()
+
+        return embed
+
+    async def get_message(self, id: int, channel: discord.ChannelType = None):
+        try:
+            message = await channel.fetch_message(id)
+            return message
+        except BaseException:
+            for channel in channel.guild.channels:
+                try:
+                    message = await channel.fetch_message(id)
+                    return message
+                except BaseException:
+                    continue
+            for guild in self.guilds:
+                for channel in guild.channels:
+                    try:
+                        message = await channel.fetch_message(id)
+                        return message
+                    except BaseException:
+                        continue
+        return None
 
     async def handle_poll(self, message: discord.Message):
         if message.author.bot:
@@ -84,7 +116,7 @@ class Melon(commands.Bot):
                         break
 
 
-extensions = []
+extensions = ["cogs.util_cog"]
 
 if __name__ == "__main__":
     bot = Melon()
