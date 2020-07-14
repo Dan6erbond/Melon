@@ -13,11 +13,11 @@ class ReactionRoleCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        if payload.user_id == bot.user.id:
+        if payload.user_id == self.bot.user.id:
             return
 
         emoji = payload.emoji.name if not payload.emoji.is_custom_emoji(
-        ) else f"<:{payload.emoji.name}:{payload.emoji.id}>"
+        ) else f":{payload.emoji.name}:{payload.emoji.id}"
 
         react_role = session.query(ReactionRole).filter(
             and_(
@@ -25,7 +25,7 @@ class ReactionRoleCog(commands.Cog):
                 ReactionRole.emoji == emoji)).first()
 
         if react_role:
-            guild = bot.get_guild(payload.guild_id)
+            guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             role = guild.get_role(react_role.role)
             try:
@@ -35,11 +35,11 @@ class ReactionRoleCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        if payload.user_id == bot.user.id:
+        if payload.user_id == self.bot.user.id:
             return
 
         emoji = payload.emoji.name if not payload.emoji.is_custom_emoji(
-        ) else f"<:{payload.emoji.name}:{payload.emoji.id}>"
+        ) else f":{payload.emoji.name}:{payload.emoji.id}"
 
         react_role = session.query(ReactionRole).filter(
             and_(
@@ -47,7 +47,7 @@ class ReactionRoleCog(commands.Cog):
                 ReactionRole.emoji == emoji)).first()
 
         if react_role:
-            guild = bot.get_guild(payload.guild_id)
+            guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             role = guild.get_role(react_role.role)
             try:
@@ -69,7 +69,7 @@ class ReactionRoleCog(commands.Cog):
                 and_(ReactionRole.message_id == msg.id, ReactionRole.emoji == emoji)).first()
 
             if not react_role:
-                react_role = ReactionRole(message_id=msg.id, emoji=emoji)
+                react_role = ReactionRole(message_id=msg.id, emoji=emoji, role=role.id)
                 session.add(react_role)
                 session.commit()
 
