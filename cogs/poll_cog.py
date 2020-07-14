@@ -92,6 +92,35 @@ class PollCog(commands.Cog):
         await ctx.send(f"<:{EMOJIS['CHECK']}> Added {emoji} to the list of default emojis for this poll channel!", delete_after=3)
         await ctx.message.delete()
 
+    @commands.command(help="Add a default emoji that is added to poll channels")
+    @commands.has_permissions(manage_channels=True)
+    async def remdefault(self, ctx: commands.Context, emoji):
+        try:
+            await ctx.message.add_reaction(emoji)
+        except BaseException:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            return
+
+        channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
+
+        if not channel or not channel.poll_channel:
+            msg = f"<:{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
+            await ctx.send(msg)
+            return
+
+        emoji = session.query(ChannelEmoji).filter(
+            and_(
+                ChannelEmoji.channel_id == ctx.channel.id,
+                ChannelEmoji.emoji == emoji))
+
+        if emoji:
+            emoji.delete()
+            session.commit()
+            await ctx.send(f"<:{EMOJIS['CHECK']}> Removed {emoji} from the list of default emojis for this poll channel!", delete_after=3)
+            await ctx.message.delete()
+        else:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> {emoji} isn't a default poll emoji in this channel!")
+
 
 def setup(bot):
     bot.add_cog(PollCog(bot))
