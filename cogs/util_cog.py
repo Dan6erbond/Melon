@@ -116,7 +116,7 @@ class UtilCog(commands.Cog):
         if not message.channel.permissions_for(message.channel.guild.get_member(ctx.author.id)).read_messages:
             return
 
-        embed = self.bot.get_embed()
+        embed = self.bot.embed
         embed.color = discord.Colour(0).from_rgb(0, 0, 0)
         embed.timestamp = message.created_at
         embed.title = f"Message by {message.author}"

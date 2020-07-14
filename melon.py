@@ -30,7 +30,8 @@ class Melon(commands.Bot):
             await ctx.message.channel.send(error)
             print(traceback.format_exc())
 
-    def get_embed(self):
+    @property
+    def embed(self):
         embed = discord.Embed(
             colour=discord.Colour(0).from_rgb(255, 85, 85)
         )
