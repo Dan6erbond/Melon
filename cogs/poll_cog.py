@@ -63,12 +63,24 @@ class PollCog(commands.Cog):
             return
 
         if msg:
-            channel = session.query(Channel).filter(
-                and_(
-                    Channel.channel_id == msg.channel.id,
-                    Channel.poll_channel == true())).first()
-            if channel:
+            channel = session.query(Channel).filter(Channel.channel_id == msg.channel.id).first()
+            if channel and channel.poll_channel:
                 await self.handle_poll(msg)
+
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        if msg.author.bot:
+            return
+
+        channel = session.query(Channel).filter(Channel.channel_id == msg.channel.id).first()
+
+        if channel and channel.poll_channel:
+            for emoji in channel.emojis:
+                if not emoji.default_emoji:
+                    await msg.add_reaction(emoji.emoji)
+            await self.handle_poll(msg)
+
+        await bot.process_commands(msg)
 
     @commands.command(help="Add a default emoji that is added to poll channels")
     @commands.has_permissions(manage_channels=True)
