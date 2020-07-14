@@ -28,7 +28,7 @@ class Melon(commands.Bot):
             pass
         else:
             await ctx.message.channel.send(error)
-            print(traceback.format_exc())
+            traceback.print_tb(error.__traceback__)
 
     @property
     def embed(self):
