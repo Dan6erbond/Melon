@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 from PIL import Image
 
+import helpers.checks as checks
 import helpers.rgb as rgb
 from const import EMOJIS, VERSION
 
@@ -134,6 +135,42 @@ class UtilCog(commands.Cog):
             embed.add_field(name="Reactions", value=reacts, inline=False)
 
         await ctx.send(embed=embed)
+
+    @commands.command(help="Nukes a chat.")
+    @commands.has_permissions(manage_messages=True)
+    async def nuke(self, ctx):
+        message = await ctx.send("❓ Are you sure you want to nuke this chat?")
+        await message.add_reaction("✔")
+        await message.add_reaction("❌")
+
+        def check(r, u):
+            return u.id == ctx.author.id and r.message.id == message.id
+
+        reaction = await self.bot.wait_for("reaction_add", check=check)
+
+        if reaction[0].emoji == "❌":
+            return
+
+        def is_pinned(m):
+            return not m.pinned
+
+        deleted = await ctx.channel.purge(limit=1000, check=is_pinned)
+
+        await ctx.send(f"💣️ {ctx.message.author.mention} nuked {ctx.message.channel.mention} by deleting {len(deleted)} message(s)!", delete_after=5)
+
+    @commands.command(help="Clear X messages.\n" +
+                      "Recommended to use if a specific amount is required, use `!nuke` to remove all.")
+    @commands.has_permissions(manage_messages=True)
+    async def clear(self, ctx, amt: int):
+        amt += 1
+        count = 0
+        while amt > 0:
+            next = min(1000, amt)
+            deleted = await ctx.message.channel.purge(limit=next, check=checks.is_pinned)
+            amt -= next
+            count += len(deleted)
+
+        await ctx.send(f"🗑️ {ctx.message.author.mention} deleted {count - 1} messages!", delete_after=5)
 
 
 def setup(bot: 'Melon'):
