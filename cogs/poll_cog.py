@@ -94,7 +94,7 @@ class PollCog(commands.Cog):
 
     @commands.command(help="Add a default emoji that is added to poll channels")
     @commands.has_permissions(manage_channels=True)
-    async def remdefault(self, ctx: commands.Context, emoji):
+    async def remdefault(self, ctx: commands.Context, emoji: str):
         try:
             await ctx.message.add_reaction(emoji)
         except BaseException:
@@ -120,6 +120,39 @@ class PollCog(commands.Cog):
             await ctx.message.delete()
         else:
             await ctx.send(f"<:{EMOJIS['XMARK']}> {emoji} isn't a default poll emoji in this channel!")
+
+    @commands.command(help="Add an emomji to the database which the bot will add to all messages sent to this channel.",
+                      aliases=["addmoji", "admoji"])
+    @commands.has_permissions(manage_channels=True)
+    async def addemoji(self, ctx: commands.Context, emoji: str):
+        try:
+            await ctx.message.add_reaction(emoji)
+        except BaseException:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            return
+
+        channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
+
+        if not channel or not channel.poll_channel:
+            msg = f"<:{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
+            await ctx.send(msg)
+            return
+
+        emoji = session.query(ChannelEmoji).filter(
+            and_(
+                ChannelEmoji.channel_id == ctx.channel.id,
+                ChannelEmoji.emoji == emoji))
+
+        if not emoji:
+            emoji = ChannelEmoji(channel_id=ctx.channel.id, emoji=emoji)
+            session.add(emoji)
+            session.commit()
+            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully added {emoji} to the list of emojis to add in this channel!", delete_after=3)
+
+            async for msg in ctx.history(limit=None):
+                await msg.add_reaction(emoji)
+        else:
+            await ctx.send(f"<:{EMOJIS['XMARK']}> That emoji is already set for this channel!")
 
 
 def setup(bot):
