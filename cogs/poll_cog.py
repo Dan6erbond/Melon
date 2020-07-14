@@ -180,6 +180,25 @@ class PollCog(commands.Cog):
         async for msg in ctx.history(limit=None):
             await msg.remove_reaction(emoji, member)
 
+    @commands.command(help="Set a channel as a poll channel telling Melon to scan messages for emojis and add them as reactions to make it easier for users to vote!")
+    @commands.has_permissions(manage_channels=True)
+    async def togglepoll(self, ctx: commands.Context):
+        channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
+
+        if not channel:
+            channel = Channel(channel_id=ctx.channel.id, poll_channel=True)
+            session.add(channel)
+        else:
+            channel.poll_channel = not channel.poll_channel
+
+        session.commit()
+
+        if channel.poll_channel:
+            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully registered channel as a poll channel!", delete_after=3)
+        else:
+            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully removed polling feature from this channel!", delete_after=3)
+        await ctx.message.delete()
+
 
 def setup(bot):
     bot.add_cog(PollCog(bot))
