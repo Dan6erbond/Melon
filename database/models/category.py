@@ -3,15 +3,16 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String
 
 from ..base import Base
+from .guild_category import GuildCategory
 
 
-class MelonCategory(Base):
+class Category(Base):
 
-    __tablename__ = 'melon_categories'
+    __tablename__ = 'categories'
 
     category_id = Column(Integer, primary_key=True)
     name = Column(String(50))
-    melons = relationship("Melon")
+    categories = relationship("Guild", secondary=GuildCategory, backref="Category")
 
     def __repr__(self):
         return f"<Category id='{self.category_id}' name='{self.name}'>"

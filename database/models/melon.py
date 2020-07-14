@@ -4,7 +4,6 @@ from sqlalchemy.schema import ForeignKey
 from sqlalchemy.types import Date, Integer, String, Text
 
 from ..base import Base
-from .guild_melon import GuildMelon
 
 
 class Melon(Base):
@@ -17,11 +16,11 @@ class Melon(Base):
     uses = Column(Integer)
     creator = Column(Integer)
     created = Column(Date)
-    guild_exclusive = Column(Integer)
-    guilds = relationship("Guild", secondary=GuildMelon, backref="Melon")
+    guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
+    guild = relationship("Guild")
     tags = relationship("MelonTag")
-    category_id = Column(Integer, ForeignKey("melon_categories.category_id"), nullable=False)
-    category = relationship("MelonCategory")
+    category_id = Column(Integer, ForeignKey("categories.category_id"))
+    category = relationship("Category")
 
     def __repr__(self):
         return f"<Melon id='{self.melon_id}' key='{self.key}' uses='{self.uses}'>"
