@@ -12,7 +12,7 @@ class Category(Base):
 
     category_id = Column(Integer, primary_key=True)
     name = Column(String(50))
-    categories = relationship("Guild", secondary=GuildCategory, backref="Category")
+    guilds = relationship("Guild", secondary=GuildCategory, backref="Category")
 
     def __repr__(self):
         return f"<Category id='{self.category_id}' name='{self.name}'>"
