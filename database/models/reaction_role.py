@@ -13,7 +13,7 @@ class ReactionRole(Base):
     reaction_role_id = Column(Integer, primary_key=True)
     message_id = Column(Integer, ForeignKey("messages.message_id"))
     message = relationship("Message")
-    role = Column(Integer)
+    role = Column(Integer, nullable=False)
     emoji = Column(String(50))
 
     def __repr__(self):
