@@ -21,7 +21,7 @@ class PollCog(commands.Cog):
         if message.author.bot:
             return
 
-        emotes = re.findall(r"<:\w+:\d+>", message.content)
+        emotes = re.findall(r"<\w+:\d+>", message.content)
         emotes.extend(re.findall(r"\d\\u20e3", message.content.lower()))
 
         for c in message.content:
@@ -75,13 +75,13 @@ class PollCog(commands.Cog):
         try:
             await ctx.message.add_reaction(emoji)
         except BaseException:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
             return
 
         channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
 
         if not channel or not channel.poll_channel:
-            msg = f"<:{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
+            msg = f"<{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
             await ctx.send(msg)
             return
 
@@ -89,7 +89,7 @@ class PollCog(commands.Cog):
         session.add(emoji)
         session.commit()
 
-        await ctx.send(f"<:{EMOJIS['CHECK']}> Added {emoji} to the list of default emojis for this poll channel!", delete_after=3)
+        await ctx.send(f"<{EMOJIS['CHECK']}> Added {emoji} to the list of default emojis for this poll channel!", delete_after=3)
         await ctx.message.delete()
 
     @commands.command(help="Add a default emoji that is added to poll channels")
@@ -98,13 +98,13 @@ class PollCog(commands.Cog):
         try:
             await ctx.message.add_reaction(emoji)
         except BaseException:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
             return
 
         channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
 
         if not channel or not channel.poll_channel:
-            msg = f"<:{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
+            msg = f"<{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
             await ctx.send(msg)
             return
 
@@ -116,10 +116,10 @@ class PollCog(commands.Cog):
         if emoji:
             emoji.delete()
             session.commit()
-            await ctx.send(f"<:{EMOJIS['CHECK']}> Removed {emoji} from the list of default emojis for this poll channel!", delete_after=3)
+            await ctx.send(f"<{EMOJIS['CHECK']}> Removed {emoji} from the list of default emojis for this poll channel!", delete_after=3)
             await ctx.message.delete()
         else:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> {emoji} isn't a default poll emoji in this channel!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> {emoji} isn't a default poll emoji in this channel!")
 
     @commands.command(help="Add an emomji to the database which the bot will add to all messages sent to this channel.",
                       aliases=["addmoji", "admoji"])
@@ -128,13 +128,13 @@ class PollCog(commands.Cog):
         try:
             await ctx.message.add_reaction(emoji)
         except BaseException:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
             return
 
         channel = session.query(Channel).filter(Channel.channel_id == ctx.channel.id).first()
 
         if not channel or not channel.poll_channel:
-            msg = f"<:{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
+            msg = f"<{EMOJIS['XMARK']}> This channel isn't setup as a poll channel! Please use `!togglepoll` to enable the feature!"
             await ctx.send(msg)
             return
 
@@ -147,12 +147,12 @@ class PollCog(commands.Cog):
             emoji = ChannelEmoji(channel_id=ctx.channel.id, emoji=emoji)
             session.add(emoji)
             session.commit()
-            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully added {emoji} to the list of emojis to add in this channel!", delete_after=3)
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added {emoji} to the list of emojis to add in this channel!", delete_after=3)
 
             async for msg in ctx.history(limit=None):
                 await msg.add_reaction(emoji)
         else:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> That emoji is already set for this channel!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> That emoji is already set for this channel!")
 
     @commands.command(help="Remove an emoji from the list of emojis that are added to this channel's messages.",
                       aliases=["removeemoji", "rememoji"])
@@ -162,7 +162,7 @@ class PollCog(commands.Cog):
         try:
             await ctx.message.remove_reaction(emoji, member)
         except BaseException:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> Uh-oh, looks like that emoji doesn't work!")
             return
 
         emoji = session.query(ChannelEmoji).filter(
@@ -173,9 +173,9 @@ class PollCog(commands.Cog):
         if emoji:
             emoji.delete()
             session.commit()
-            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully removed {emoji} from the list of emojis to add in this channel!", delete_after=3)
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed {emoji} from the list of emojis to add in this channel!", delete_after=3)
         else:
-            await ctx.send(f"<:{EMOJIS['XMARK']}> Couldn't find {emoji} in the list of emojis to add in this channel!")
+            await ctx.send(f"<{EMOJIS['XMARK']}> Couldn't find {emoji} in the list of emojis to add in this channel!")
 
         async for msg in ctx.history(limit=None):
             await msg.remove_reaction(emoji, member)
@@ -194,9 +194,9 @@ class PollCog(commands.Cog):
         session.commit()
 
         if channel.poll_channel:
-            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully registered channel as a poll channel!", delete_after=3)
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully registered channel as a poll channel!", delete_after=3)
         else:
-            await ctx.send(f"<:{EMOJIS['CHECK']}> Successfully removed polling feature from this channel!", delete_after=3)
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed polling feature from this channel!", delete_after=3)
         await ctx.message.delete()
 
 
