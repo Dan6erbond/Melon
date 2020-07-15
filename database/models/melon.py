@@ -27,8 +27,10 @@ class Melon(Base):
 
     def to_dict(self):
         return {
-            "id": self.melon_id,
-            "key": self.key,
-            "value": self.value,
-            "tags": [tag.value for tag in self.tags]
+            "created": self.created,
+            "creator": self.creator,
+            "id"     : self.melon_id,
+            "key"    : self.key,
+            "tags"   : [tag.value for tag in self.tags],
+            "value"  : self.value
         }
