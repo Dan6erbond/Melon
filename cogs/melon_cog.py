@@ -21,18 +21,18 @@ class MelonCog(commands.Cog):
         value = melon["value"].format(ctx, search)
 
         add = None
-        if "creator" in melon and "created" in melon:
+        if melon["creator"] and melon["created"]:
             creator = self.bot.get_user(melon["creator"])
             date = melon["created"].strftime("%d.%m.%Y")
             add = f"Created by {creator} on {date}."
-        elif "creator" in melon:
+        elif melon["creator"]:
             creator = self.bot.get_user(melon["creator"])
             add = f"Created by {creator}."
-        elif "created" in melon:
+        elif melon["created"]:
             date = melon["created"].strftime("%d.%m.%Y")
             add = f"Created on {date}."
 
-        if add is not None:
+        if add:
             value += f"\n\n*[{add}]*"
 
         return value
@@ -48,7 +48,7 @@ class MelonCog(commands.Cog):
             session.commit()
 
         melons = session.query(Melon).filter(or_(Melon.guild_id == guild.guild_id,
-                                                 Melon.category.in_(guild.categories))).all()
+                                                 Melon.category_id.in_(c.category_id for c in guild.categories))).all()
 
         if len(melons) == 0:
             await ctx.send("Your guild has no enabled Melon categories. Please contact an admin to enable them.")
@@ -58,15 +58,15 @@ class MelonCog(commands.Cog):
             melons = sorted(melons, key=lambda m: m.key)
             melons = sorted(melons, key=lambda m: m.uses)
 
-            popular = melons[:7]
-            new = [melon for melon in melons[7:] if melon.uses == 0]
-            others = [melon for melon in melons[7:] if melon.uses > 0]
+            popular = [melon.key for melon in melons[:7]]
+            new = [melon.key for melon in melons[7:] if melon.uses == 0]
+            others = [melon.key for melon in melons[7:] if melon.uses > 0]
 
-            await ctx.send(f"""You can search for a Melon by typing `!melon [search]`.
-                            There are many available Melons.\n\n
-                            **Popular Melons: **{', '.join(popular)}\n
-                            **New Melons: **{', '.join(new)}\n
-                            **Other Melons: **{', '.join(others)}""")
+            await ctx.send("You can search for a Melon by typing `!melon [search]`." +
+                           "There are many available Melons.\n\n" +
+                           f"**Popular Melons: **{', '.join(popular)}\n" +
+                           f"**New Melons: **{', '.join(new)}\n" +
+                           f"**Other Melons: **{', '.join(others)}")
             return
 
         results = fuzzle.find([melon.to_dict() for melon in melons], search, return_all=True)
@@ -74,7 +74,7 @@ class MelonCog(commands.Cog):
         if not results:
             await ctx.send(f"We couldn't find any Melons or Tags with the search '{search}'.")
         elif len(results) == 1 and results[0]["match"]:
-            melon = session.query(Melon).filter(Melon.id == results[0]["id"]).first()
+            melon = session.query(Melon).filter(Melon.melon_id == results[0]["id"]).first()
             melon.uses += 1
             session.commit()
             await ctx.send(self.get_melon_string(ctx, search, results[0]))
@@ -95,7 +95,7 @@ class MelonCog(commands.Cog):
                 similar = [f"{emojis[i]} {results[i]['key']}" for i in range(1, max_results)]
                 similar = f"\n\n**Not what you were looking for? Try** {', '.join(similar)}**.**" if similar else ""
 
-                melon = session.query(Melon).filter(Melon.id == result["id"]).first()
+                melon = session.query(Melon).filter(Melon.melon_id == result["id"]).first()
                 melon.uses += 1
                 session.commit()
 
@@ -128,15 +128,15 @@ class MelonCog(commands.Cog):
                     similar = f"\n\n**Not what you were looking for? Try** {', '.join(similar)}**.**" if similar else ""
 
                     if key not in keys:
-                        melon = session.query(Melon).filter(Melon.id == result["id"]).first()
+                        melon = session.query(Melon).filter(Melon.melon_id == result["id"]).first()
                         melon.uses += 1
                         session.commit()
                         keys.add(key)
 
                     content = f"**__{key}__**\n\n{self.get_melon_string(ctx, search, result)}{similar}"
                     await msg.edit(content=content)
-                except BaseException:
-                    pass
+                except Exception as e:
+                    await self.bot.send_error(e)
                 finally:
                     seconds += (datetime.now() - time_started).seconds
 
