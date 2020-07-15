@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import and_, or_, true
 import helpers.fuzzle as fuzzle
 from const import AUTHORIZED_USERS, EMOJIS
 from database.database import session
-from database.models import Category, Guild, Melon
+from database.models import Category, Guild, Melon, Tag
 
 if TYPE_CHECKING:
     from melon import Melon
@@ -201,18 +201,18 @@ class MelonCog(commands.Cog):
             f"**Enabled categories: **{', '.join(enabled)}\n" +
             f"**Disabled cateogires: **{', '.join(disabled)}")
 
-    async def ask_melon_key(self, ctx: commands.Context):
-        await ctx.send("❓ What should the Melon's key of be?")
+    async def ask_prompt(self, ctx: commands.Context, prompt: str, timeout: int = 2 * 60):
+        await ctx.send(prompt)
         try:
             message = await self.bot.wait_for("message",
                                               check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-                                              timeout=2 * 60)
+                                              timeout=timeout)
         except asyncio.exceptions.TimeoutError:
             await ctx.send(f"<{EMOJIS['XMARK']}> That took too long! " +
                            "You can restart the process by calling this command again.")
             return
 
-        return message.content.lower()
+        return message.content
 
     @commands.command(help="Add a Melon to a given category.")
     async def addmelon(self, ctx: commands.Context, arg: str = ""):
@@ -237,9 +237,11 @@ class MelonCog(commands.Cog):
                                    "You can restart the process by calling this command again.")
                     return
 
-            key = await self.ask_melon_key(ctx)
+            key = await self.ask_prompt(ctx, "❓ What should the key of the Melon be?")
             if not key:
                 return
+            else:
+                key = key.lower()
 
             melon = session.query(Melon).filter(
                 and_(func.lower(Melon.key) == key,
@@ -273,9 +275,11 @@ class MelonCog(commands.Cog):
                 return
 
             if not arg:
-                key = await self.ask_melon_key(ctx)
+                key = await self.ask_prompt(ctx, "❓ What should the key of the Melon be?")
                 if not key:
                     return
+                else:
+                    key = key.lower()
             else:
                 key = arg.lower()
 
@@ -298,6 +302,42 @@ class MelonCog(commands.Cog):
             session.commit()
 
             await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added Melon '{key}' to the guild Melons!")
+
+    @commands.command(help="Add tags to a Melon.")
+    async def addtags(self, ctx: commands.Context, *, key: str = ""):
+        if not key:
+            key = await self.ask_prompt(ctx, "❓ What is the key used for the Melon?")
+            if not key:
+                return
+            else:
+                key = key.lower()
+
+        guild = self.get_guild(ctx.guild.id)
+
+        if ctx.author.id in AUTHORIZED_USERS:
+            melon = session.query(Melon).filter(func.lower(Melon.key) == key).first()
+        else:
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     Melon.guild_id == guild.guild_id)).first()
+
+        if not melon:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Melon '{key}' doesn't exist!")
+
+        tags = await self.ask_prompt(ctx, f"❓ Which tags should be added to the Melon '{key}'?")
+        if not tags:
+            return
+        tags = tags.split(" ")
+        for t in tags:
+            tag = session.query(Tag).filter(func.lower(Tag.value) == t.lower()).first()
+            if not tag:
+                tag = Tag(value=t)
+                session.add(tag)
+            elif tag in melon.tags:
+                continue
+            melon.tags.append(tag)
+        session.commit()
+        await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added tags `{', '.join(tags)}` to Melon '{melon.key}'!")
 
 
 def setup(bot: 'Melon'):
