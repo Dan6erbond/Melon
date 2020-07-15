@@ -187,7 +187,7 @@ class MelonCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> This Melon category isn't available or has been disabled in this guild.")
 
     @commands.command(help="Display the enabled/disabled categories for this guild.")
-    async def meloncats(self, ctx):
+    async def meloncats(self, ctx: commands.Context):
         guild = self.get_guild(ctx.guild.id)
         enabled = [category.name for category in guild.categories]
 
@@ -215,7 +215,7 @@ class MelonCog(commands.Cog):
         return message.content
 
     @commands.command(help="Add a Melon to a given category.")
-    async def addmelon(self, ctx: commands.Context, arg: str = ""):
+    async def addmelon(self, ctx: commands.Context, *, arg: str = ""):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
 
