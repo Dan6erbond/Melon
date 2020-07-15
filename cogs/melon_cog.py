@@ -8,7 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import and_, or_, true
 
 import helpers.fuzzle as fuzzle
-from const import EMOJIS
+from const import AUTHORIZED_USERS, EMOJIS
 from database.database import session
 from database.models import Category, Guild, Melon
 
@@ -155,7 +155,7 @@ class MelonCog(commands.Cog):
                     seconds += (datetime.now() - time_started).seconds
 
     @commands.command(help="Get the RAW markdown version of a Melon.")
-    async def rawmelon(self, ctx, *, key):
+    async def rawmelon(self, ctx: commands.Context, *, key):
         guild = self.get_guild(ctx.guild.id)
 
         melon = session.query(Melon).filter(
@@ -170,7 +170,7 @@ class MelonCog(commands.Cog):
             await ctx.send("❗ No Melon or Tag found under that name!")
 
     @commands.command(help="Display all the available Melons from a category.")
-    async def meloncat(self, ctx, *, cat):
+    async def meloncat(self, ctx: commands.Context, *, cat):
         category = session.query(Category).join(Guild, Category.guilds).filter(
             and_(Guild.guild_id == ctx.guild.id,
                  func.lower(Category.name) == cat.lower())).first()
@@ -200,6 +200,104 @@ class MelonCog(commands.Cog):
             "A server admin can enable a Melon category by typing `!enablecat [cat]`.\n\n" +
             f"**Enabled categories: **{', '.join(enabled)}\n" +
             f"**Disabled cateogires: **{', '.join(disabled)}")
+
+    async def ask_melon_key(self, ctx: commands.Context):
+        await ctx.send("❓ What should the Melon's key of be?")
+        try:
+            message = await self.bot.wait_for("message",
+                                              check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
+                                              timeout=2 * 60)
+        except asyncio.exceptions.TimeoutError:
+            await ctx.send(f"<{EMOJIS['XMARK']}> That took too long! " +
+                           "You can restart the process by calling this command again.")
+            return
+
+        return message.content.lower()
+
+    @commands.command(help="Add a Melon to a given category.")
+    async def addmelon(self, ctx: commands.Context, arg: str = ""):
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+
+        if arg and ctx.author.id in AUTHORIZED_USERS:
+            category = session.query(Category).filter(func.lower(Category.name) == arg.lower()).first()
+            if not category:
+                msg = await ctx.send(f"<{EMOJIS['XMARK']}> Category '{arg}' doesn't exist! Would you like to create it?")
+                await msg.add_reaction(f"<{EMOJIS['CHECK']}>")
+                await msg.add_reaction(f"<{EMOJIS['XMARK']}>")
+
+                try:
+                    reaction = await bot.wait_for("reaction_add", check=check, timeout=2 * 60)
+                    if reaction[0].custom_emoji and reaction[0].emoji.id == int(EMOJIS['CHECK'].split(":")[2]):
+                        category = Category(name=arg)
+                        session.add(category)
+                        await ctx.send(f"<{EMOJIS['CHECK']}> Category '{arg}' successfully created!")
+                except asyncio.exceptions.TimeoutError:
+                    await ctx.send(f"<{EMOJIS['XMARK']}> That took too long! " +
+                                   "You can restart the process by calling this command again.")
+                    return
+
+            key = await self.ask_melon_key(ctx)
+            if not key:
+                return
+
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     Melon.category_id == category.category_id)).first()
+            if melon:
+                await ctx.send(f"❗ A Melon with that key already exists in {arg}! " +
+                               "You can edit it with `!editmelon`.")
+                return
+
+            await ctx.send(f"❓ What should the value of {key} be?")
+            message = await self.bot.wait_for("message", check=check)
+
+            melon = Melon(key=key,
+                          category=category,
+                          value=message.content,
+                          created_by=ctx.author.id)
+            session.add(melon)
+            session.commit()
+
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added Melon '{key}' to the global Melons!")
+        else:
+            guild = self.get_guild(ctx.guild.id)
+
+            if not guild.melon_role:
+                await ctx.send(f"<{EMOJIS['XMARK']}> Custom Melons for this guild haven't been enabled!")
+                return
+
+            roles = [role.id for role in ctx.author.roles]
+            if guild.melon_role not in roles:
+                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to create Melons in this guild!")
+                return
+
+            if not arg:
+                key = await self.ask_melon_key(ctx)
+                if not key:
+                    return
+            else:
+                key = arg.lower()
+
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     Melon.guild_id == guild.guild_id)).first()
+            if melon:
+                await ctx.send(f"❗ A Melon with that key already exists in this guild! " +
+                               "You can edit it with `!editmelon`.")
+                return
+
+            await ctx.send(f"❓ What should the value of {key} be?")
+            message = await self.bot.wait_for("message", check=check)
+
+            melon = Melon(key=key,
+                          guild=guild,
+                          value=message.content,
+                          created_by=ctx.author.id)
+            session.add(melon)
+            session.commit()
+
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added Melon '{key}' to the guild Melons!")
 
 
 def setup(bot: 'Melon'):
