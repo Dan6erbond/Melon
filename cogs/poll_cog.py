@@ -87,8 +87,6 @@ class PollCog(commands.Cog):
         if channel and channel.poll_channel:
             await self.handle_poll(msg, channel)
 
-        await self.bot.process_commands(msg)
-
     @commands.command(help="Add a default emoji that is added to poll channels")
     @commands.has_permissions(manage_channels=True)
     async def adddefault(self, ctx: commands.Context, emoji: str):
