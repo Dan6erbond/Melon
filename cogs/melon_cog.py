@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import discord
 from discord.ext import commands
@@ -40,7 +40,7 @@ class MelonCog(commands.Cog):
 
         return value
 
-    def get_guild(self, guild_id: int):
+    def get_guild(self, guild_id: int) -> Guild:
         guild = session.query(Guild).filter(Guild.guild_id == guild_id).first()
 
         if not guild:
@@ -51,7 +51,7 @@ class MelonCog(commands.Cog):
 
         return guild
 
-    def order_melons(self, melons: List[Melon]):
+    def order_melons(self, melons: List[Melon]) -> Tuple[List[Melon], List[Melon], List[Melon]]:
         melons = sorted(melons, key=lambda m: m.key)
         melons = sorted(melons, key=lambda m: m.uses)
 
