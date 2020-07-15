@@ -25,7 +25,7 @@ class Melon(Base):
     def __repr__(self):
         return f"<Melon id='{self.melon_id}' key='{self.key}' uses='{self.uses}'>"
 
-    def get_dict(self):
+    def to_dict(self):
         return {
             "id": self.melon_id,
             "key": self.key,
