@@ -129,6 +129,7 @@ dmypy.json
 
 # Custom
 *.ini
+public/
 
 # Database files
 *.db

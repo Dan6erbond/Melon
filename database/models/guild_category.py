@@ -13,7 +13,11 @@ class GuildCategory(Base):
     guild_id = Column(Integer, ForeignKey("guilds.guild_id"), nullable=False)
     guild = relationship("Guild")
     category_id = Column(Integer, ForeignKey("categories.category_id"), nullable=False)
+<<<<<<< HEAD
     category = relationship("category")
+=======
+    category = relationship("Category")
+>>>>>>> master
 
     def __repr__(self):
         return f"<Guild Category guild='{self.guild_id}' category='{self.category_id}'>"

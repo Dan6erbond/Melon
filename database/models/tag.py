@@ -12,7 +12,11 @@ class Tag(Base):
     __tablename__ = 'tags'
 
     tag_id = Column(Integer, primary_key=True)
+<<<<<<< HEAD
     melons = relationship("Melon", secondary=MelonTag, backref="Tag")
+=======
+    melons = relationship("Melon", secondary="melons_tags", backref="Tag")
+>>>>>>> master
     value = Column(String(50))
 
     def __repr__(self):
