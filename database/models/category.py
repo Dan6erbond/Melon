@@ -12,6 +12,7 @@ class Category(Base):
     category_id = Column(Integer, primary_key=True)
     name = Column(String(50))
     guilds = relationship("Guild", secondary="guilds_categories", backref="Category")
+    melons = relationship("Melon")
 
     def __repr__(self):
         return f"<Category id='{self.category_id}' name='{self.name}'>"
