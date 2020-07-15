@@ -1,7 +1,8 @@
 from sqlalchemy import Column
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.types import Date, Integer, String, Text
+from sqlalchemy.sql import func
+from sqlalchemy.types import DateTime, Integer, String, Text
 
 from ..base import Base
 
@@ -14,8 +15,8 @@ class Melon(Base):
     key = Column(String(50))
     value = Column(Text(4294000000))
     uses = Column(Integer, default=0, nullable=False)
-    creator = Column(Integer)
-    created = Column(Date)
+    created_by = Column(Integer)
+    created_at = Column(DateTime, server_default=func.now())
     guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
     guild = relationship("Guild")
     tags = relationship("Tag", "melons_tags", backref="Melon")
@@ -27,8 +28,8 @@ class Melon(Base):
 
     def to_dict(self):
         return {
-            "created": self.created,
-            "creator": self.creator,
+            "created": self.created_at,
+            "creator": self.created_by,
             "id"     : self.melon_id,
             "key"    : self.key,
             "tags"   : [tag.value for tag in self.tags],

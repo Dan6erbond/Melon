@@ -44,8 +44,8 @@ def main():
                         key=m["key"],
                         value=m["value"],
                         uses=m["uses"],
-                        creator=m["creator"] if "creator" in m else None,
-                        created=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
+                        created_by=m["creator"] if "creator" in m else None,
+                        created_at=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
                         category=category)
                     session.add(melon)
                 if "tags" in m:
@@ -77,8 +77,8 @@ def main():
                             key=m["key"],
                             value=m["value"],
                             uses=m["uses"],
-                            creator=m["creator"] if "creator" in m else None,
-                            created=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
+                            created_by=m["creator"] if "creator" in m else None,
+                            created_at=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
                             guild=guild)
                         session.add(melon)
                     if "tags" in m:
