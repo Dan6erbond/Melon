@@ -1,11 +1,14 @@
+import asyncio
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List
 
 import discord
 from discord.ext import commands
-from sqlalchemy.sql.expression import or_, true
+from sqlalchemy import func
+from sqlalchemy.sql.expression import and_, or_, true
 
 import helpers.fuzzle as fuzzle
+from const import EMOJIS
 from database.database import session
 from database.models import Category, Guild, Melon
 
@@ -17,7 +20,7 @@ class MelonCog(commands.Cog):
     def __init__(self, bot: 'Melon'):
         self.bot = bot
 
-    def get_melon_string(self, ctx, search, melon):
+    def get_melon_string(self, ctx: commands.Context, search: str, melon: Dict):
         value = melon["value"].format(ctx, search)
 
         add = None
@@ -37,16 +40,30 @@ class MelonCog(commands.Cog):
 
         return value
 
-    @commands.command()
-    async def melon(self, ctx: commands.Context, *, search=""):
-        guild = session.query(Guild).filter(Guild.guild_id == ctx.guild.id).first()
+    def get_guild(self, guild_id: int):
+        guild = session.query(Guild).filter(Guild.guild_id == guild_id).first()
 
         if not guild:
             categories = session.query(Category).filter(Category.default == true()).all()
-            guild = Guild(guild_id=ctx.guild.id, categories=categories)
+            guild = Guild(guild_id=guild_id, categories=categories)
             session.add(guild)
             session.commit()
 
+        return guild
+
+    def order_melons(self, melons: List[Melon]):
+        melons = sorted(melons, key=lambda m: m.key)
+        melons = sorted(melons, key=lambda m: m.uses)
+
+        popular = [melon.key for melon in melons[:7]]
+        new = [melon.key for melon in melons[7:] if melon.uses == 0]
+        others = [melon.key for melon in melons[7:] if melon.uses > 0]
+
+        return popular, new, others
+
+    @commands.command(help="Search through a wide array of Melons with keywords and get the information you need!")
+    async def melon(self, ctx: commands.Context, *, search=""):
+        guild = self.get_guild(ctx.guild.id)
         melons = session.query(Melon).filter(or_(Melon.guild_id == guild.guild_id,
                                                  Melon.category_id.in_(c.category_id for c in guild.categories))).all()
 
@@ -55,12 +72,7 @@ class MelonCog(commands.Cog):
             return
 
         if search == "":
-            melons = sorted(melons, key=lambda m: m.key)
-            melons = sorted(melons, key=lambda m: m.uses)
-
-            popular = [melon.key for melon in melons[:7]]
-            new = [melon.key for melon in melons[7:] if melon.uses == 0]
-            others = [melon.key for melon in melons[7:] if melon.uses > 0]
+            popular, new, others = self.order_melons(melons)
 
             await ctx.send("You can search for a Melon by typing `!melon [search]`." +
                            "There are many available Melons.\n\n" +
@@ -135,10 +147,44 @@ class MelonCog(commands.Cog):
 
                     content = f"**__{key}__**\n\n{self.get_melon_string(ctx, search, result)}{similar}"
                     await msg.edit(content=content)
+                except asyncio.exceptions.TimeoutError:
+                    pass
                 except Exception as e:
                     await self.bot.send_error(e)
                 finally:
                     seconds += (datetime.now() - time_started).seconds
+
+    @commands.command(help="Get the RAW markdown version of a Melon.")
+    async def rawmelon(self, ctx, *, key):
+        guild = self.get_guild(ctx.guild.id)
+
+        melon = session.query(Melon).filter(
+            and_(func.lower(Melon.key) == key.lower(),
+                 or_(Melon.guild_id == guild.guild_id,
+                     Melon.category_id.in_(c.category_id for c in guild.categories)))).first()
+
+        if melon:
+            value = melon.value.replace("```", r"\`\`\`")
+            await ctx.send(f"```\n{value}\n```")
+        else:
+            await ctx.send("❗ No Melon or Tag found under that name!")
+
+    @commands.command(help="Display all the available Melons from a category.")
+    async def meloncat(self, ctx, *, cat):
+        category = session.query(Category).join(Guild, Category.guilds).filter(
+            and_(Guild.guild_id == ctx.guild.id,
+                 func.lower(Category.name) == cat.lower())).first()
+
+        if category:
+            popular, new, others = self.order_melons(category.melons)
+
+            await ctx.send(f"Here are the available Melons in '{cat}'. " +
+                           "You can search for a Melon by typing `!melon [seach]`.\n\n" +
+                           f"**Popular Melons: **{', '.join(popular)}\n" +
+                           f"**New Melons: **{', '.join(new)}\n" +
+                           f"**Other Melons: **{', '.join(others)}")
+        else:
+            await ctx.send(f"<{EMOJIS['XMARK']}> This Melon category isn't available or has been disabled in this guild.")
 
 
 def setup(bot: 'Melon'):
