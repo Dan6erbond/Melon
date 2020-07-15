@@ -11,6 +11,7 @@ class Guild(Base):
     guild_id = Column(Integer, primary_key=True)
     categories = relationship("Category", secondary="guilds_categories", backref="Guild")
     melons = relationship("Melon")
+    melon_role = Column(Integer)
 
     def __repr__(self):
         return f"<Guild id='{self.guild_id}'>"
