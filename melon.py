@@ -7,7 +7,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from const import VERSION
+from const import MAINTAINER, VERSION
 
 
 class Melon(commands.Bot):
@@ -35,7 +35,7 @@ class Melon(commands.Bot):
         embed = discord.Embed(
             colour=discord.Colour(0).from_rgb(255, 85, 85)
         )
-        embed.set_footer(text=f"Melon v{VERSION}", icon_url=self.user.avatar_url)
+        embed.set_footer(text=f"Melon v{VERSION} by {MAINTAINER}", icon_url=self.user.avatar_url)
         embed.timestamp = datetime.utcnow()
 
         return embed
