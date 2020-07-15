@@ -26,7 +26,6 @@ if __name__ == "__main__":
 
     Melon.__table__.create(bind=engine)
     GuildMelon.__table__.create(bind=engine)
-    MelonCategory.__table__.create(bind=engine)
     MelonTag.__table__.create(bind=engine)
     Tag.__table__.create(bind=engine)
 
