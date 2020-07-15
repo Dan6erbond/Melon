@@ -3,7 +3,6 @@ from .channel import Channel
 from .channel_emoji import ChannelEmoji
 from .guild import Guild
 from .guild_category import GuildCategory
-from .guild_melon import GuildMelon
 from .melon import Melon
 from .melon_tag import MelonTag
 from .message import Message
