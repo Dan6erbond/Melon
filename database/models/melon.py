@@ -24,3 +24,10 @@ class Melon(Base):
 
     def __repr__(self):
         return f"<Melon id='{self.melon_id}' key='{self.key}' uses='{self.uses}'>"
+
+    def get_dict(self):
+        return {
+            "key": self.key,
+            "value": self.value,
+            "tags": [tag.value for tag in self.tags]
+        }
