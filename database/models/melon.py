@@ -19,8 +19,18 @@ class Melon(Base):
     guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
     guild = relationship("Guild")
     tags = relationship("Tag", "melons_tags", backref="Melon")
-    category_id = Column(Integer, ForeignKey("melon_categories.category_id"))
-    category = relationship("MelonCategory")
+    category_id = Column(Integer, ForeignKey("categories.category_id"))
+    category = relationship("Category")
 
     def __repr__(self):
         return f"<Melon id='{self.melon_id}' key='{self.key}' uses='{self.uses}'>"
+
+    def to_dict(self):
+        return {
+            "created": self.created,
+            "creator": self.creator,
+            "id"     : self.melon_id,
+            "key"    : self.key,
+            "tags"   : [tag.value for tag in self.tags],
+            "value"  : self.value
+        }

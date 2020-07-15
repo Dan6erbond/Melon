@@ -5,7 +5,6 @@ from .guild import Guild
 from .guild_category import GuildCategory
 from .guild_melon import GuildMelon
 from .melon import Melon
-from .melon_category import MelonCategory
 from .melon_tag import MelonTag
 from .message import Message
 from .reaction_role import ReactionRole
