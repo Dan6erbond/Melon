@@ -43,6 +43,7 @@ def main():
                     melon = Melon(
                         key=m["key"],
                         value=m["value"],
+                        uses=m["uses"],
                         creator=m["creator"] if "creator" in m else None,
                         created=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
                         category=category)
@@ -75,6 +76,7 @@ def main():
                         melon = Melon(
                             key=m["key"],
                             value=m["value"],
+                            uses=m["uses"],
                             creator=m["creator"] if "creator" in m else None,
                             created=datetime.utcfromtimestamp(m["created"]) if "created" in m else None,
                             guild=guild)
