@@ -186,6 +186,21 @@ class MelonCog(commands.Cog):
         else:
             await ctx.send(f"<{EMOJIS['XMARK']}> This Melon category isn't available or has been disabled in this guild.")
 
+    @commands.command(help="Display the enabled/disabled categories for this guild.")
+    async def meloncats(self, ctx):
+        guild = self.get_guild(ctx.guild.id)
+        enabled = [category.name for category in guild.categories]
+
+        disabled_categories = session.query(Category).filter(
+            ~Category.guilds.any(Guild.guild_id == ctx.guild.id)).all()
+        disabled = [category.name for category in disabled_categories]
+
+        await ctx.send(
+            "These are the enabled/disabled Melon categories for this guild. " +
+            "A server admin can enable a Melon category by typing `!enablecat [cat]`.\n\n" +
+            f"**Enabled categories: **{', '.join(enabled)}\n" +
+            f"**Disabled cateogires: **{', '.join(disabled)}")
+
 
 def setup(bot: 'Melon'):
     bot.add_cog(MelonCog(bot))
