@@ -13,7 +13,7 @@ class Melon(Base):
     melon_id = Column(Integer, primary_key=True)
     key = Column(String(50))
     value = Column(Text(4294000000))
-    uses = Column(Integer)
+    uses = Column(Integer, default=0, nullable=False)
     creator = Column(Integer)
     created = Column(Date)
     guild_id = Column(Integer, ForeignKey("guilds.guild_id"))
