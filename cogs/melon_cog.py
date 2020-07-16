@@ -439,6 +439,27 @@ class MelonCog(commands.Cog):
         stats = [f"{melon.key} [{melon.uses}]" for melon in melons]
         await ctx.send(f"**Available Melons and their usage:**\n\n{stats}")
 
+    @commands.command(help="Enable custom Melons in this guild.", aliases=["enablegm"])
+    @commands.has_permissions(administrator=True)
+    async def enableguildmelons(self, ctx: commands.Context):
+        guild = self.bot.get_guild(ctx.guild.id)
+
+        if guild.melon_role:
+            await ctx.send("Custom Melons have already been enabled in this guild!")
+            return
+
+        role = await ctx.guild.create_role(name="🍉 Melon Editor")
+        guild.melon_role = role.id
+
+        await ctx.author.add_roles(role)
+
+        session.commit()
+
+        content = f"Melons have been enabled for this guild! " + \
+            f"You were assigned the {role.mention} role which can be assigned to others that allows you to edit Melons!\n\n" + \
+            "A more in-depth documentation of the Melon system can be found on Melon's GitHub Wikipage."
+        await ctx.send(content)
+
 
 def setup(bot: 'Melon'):
     bot.add_cog(MelonCog(bot))
