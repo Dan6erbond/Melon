@@ -100,9 +100,7 @@ class HelpCommand(commands.HelpCommand):
                             value=cmd.brief if cmd.brief else cmd.help,
                             inline=False)
 
-    async def send_cog_help(self, cog):
-        print("Cog help:", cog)
-        return await super().send_cog_help(cog)
+        await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
         print("Group help:", group)
@@ -113,8 +111,8 @@ class HelpCommand(commands.HelpCommand):
         return await super().send_command_help(command)
 
     async def command_not_found(self, string):
-        print("Command not found:", string)
-        return await super().command_not_found(string)
+        await self.context.send("Test string.")
+        return super().command_not_found(string)
 
     async def subcommand_not_found(self, command, string):
         print("Subcommand not found:", command, string)
