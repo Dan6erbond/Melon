@@ -6,6 +6,8 @@ from typing import List, Mapping, Optional
 import discord
 from discord.ext import commands
 
+import helpers.fuzzle as fuzzle
+
 MAINTAINER = "Dan6erbond#2259"
 
 
@@ -116,12 +118,13 @@ class HelpCommand(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def command_not_found(self, string):
-        await self.context.send("Test string.")
-        return super().command_not_found(string)
+        cmds = [{"key": cmd.name, "tags": cmd.aliases, "cmd": cmd} for cmd in self.context.bot.commands]
+        results = fuzzle.find(cmds, string)
 
         top_cmds = '\n'.join([f"`{self.get_cmd_string(cmd['cmd'])}`" for cmd in results][:3])
         await self.get_destination().send(f"No command called \"{string}\" found. " +
-                                          f"Maybe you meant?\n\n{top_cmds}")
+                                          f"Maybe you meant?\n\n{top_cmds}\n\n" +
+                                          "Powered by Fuzzle™.")
 
     async def subcommand_not_found(self, command, string):
         print("Subcommand not found:", command, string)
