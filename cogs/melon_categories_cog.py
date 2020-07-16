@@ -63,11 +63,11 @@ class MelonCategoriesCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
             return
 
-        guild = self.bot.get_guild()
+        guild = self.bot.get_guild(ctx.guild.id)
 
         category_ids = [cat.category_id for cat in guild.categories]
         if category.category_id in category_ids:
-            await ctx.send("❗ Melon category '{cat}' was already enabled!")
+            await ctx.send(f"❗ Melon category '{cat}' was already enabled!")
         else:
             guild.categories.append(category)
             session.commit()
@@ -82,7 +82,7 @@ class MelonCategoriesCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
             return
 
-        guild = self.bot.get_guild()
+        guild = self.bot.get_guild(ctx.guild.id)
 
         category_ids = [cat.category_id for cat in guild.categories]
         if category.category_id in category_ids:
