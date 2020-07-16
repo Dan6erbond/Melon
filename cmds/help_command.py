@@ -43,8 +43,6 @@ class HelpCommand(commands.HelpCommand):
 
         for cog in mapping:
             embed = self.embed
-            embed.set_author(name=f"Commands in the {cog.name} Cog")
-            embed.description = "Use `!help [cog]` for more information."
 
             for cmd in mapping[cog]:
                 embed.add_field(name=f"`{self.get_cmd_string(cmd)}`",
@@ -52,8 +50,12 @@ class HelpCommand(commands.HelpCommand):
                                 inline=False)
 
             if not cog:
+                embed.set_author(name=f"General Commands")
+                embed.description = "Use `!help [command]` for more information."
                 embeds = [embed, *embeds]
             else:
+                embed.set_author(name=f"Commands in the {cog.qualified_name} Category")
+                embed.description = "Use `!help [cog]` for more information."
                 embeds.append(embed)
 
         for index, embed in enumerate(embeds, start=1):
