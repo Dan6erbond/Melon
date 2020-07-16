@@ -98,6 +98,8 @@ class HelpCommand(commands.HelpCommand):
 
     async def send_cog_help(self, cog: commands.Cog):
         embed = self.embed
+        embed.set_author(name=f"Commands in the {cog.name} Cog")
+        embed.description = "Use `!help [command]` for more information."
 
         for cmd in cog.get_commands():
             embed.add_field(name=f"`{self.get_cmd_string(cmd)}`",
