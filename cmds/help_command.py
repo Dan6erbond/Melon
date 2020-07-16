@@ -43,6 +43,8 @@ class HelpCommand(commands.HelpCommand):
 
         for cog in mapping:
             embed = self.embed
+            embed.set_author(name=f"Commands in the {cog.name} Cog")
+            embed.description = "Use `!help [cog]` for more information."
 
             for cmd in mapping[cog]:
                 embed.add_field(name=f"`{self.get_cmd_string(cmd)}`",
