@@ -29,7 +29,7 @@ class MelonCategoriesCog(commands.Cog):
 
     @commands.command(help="Delete a Melon category.")
     @commands.check(is_authorized)
-    async def delcat(self, ctx, cat):
+    async def delcat(self, ctx: commands.Context, *, cat: str):
         category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
 
         if not category:
@@ -53,6 +53,44 @@ class MelonCategoriesCog(commands.Cog):
                 session.delete(category)
                 session.commit()
                 await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed '{cat}' as a category in the Melons!")
+
+    @commands.command(help="Enable a Melon category in this guild.")
+    @commands.has_permissions(administrator=True)
+    async def enablecat(self, ctx: commands.Context, *, cat: str):
+        category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
+
+        if not category:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
+            return
+
+        guild = self.bot.get_guild()
+
+        category_ids = [cat.category_id for cat in guild.categories]
+        if category.category_id in category_ids:
+            await ctx.send("❗ Melon category '{cat}' was already enabled!")
+        else:
+            guild.categories.append(category)
+            session.commit()
+            await ctx.send(f"<{EMOJIS['CHECK']}> Melon category '{cat}' successfully enabled!")
+
+    @commands.command(help="Disable a Melon category in this guild.")
+    @commands.has_permissions(administrator=True)
+    async def disablecat(self, ctx, cat):
+        category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
+
+        if not category:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
+            return
+
+        guild = self.bot.get_guild()
+
+        category_ids = [cat.category_id for cat in guild.categories]
+        if category.category_id in category_ids:
+            guild.categories.remove(category)
+            session.commit()
+            await ctx.send(f"<{EMOJIS['CHECK']}> Melon category '{cat}' successfully disabled!")
+        else:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' was never enabled in this guild!")
 
 
 def setup(bot: 'Melon'):

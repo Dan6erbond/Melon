@@ -41,17 +41,6 @@ class MelonCog(commands.Cog):
 
         return value
 
-    def get_guild(self, guild_id: int) -> Guild:
-        guild = session.query(Guild).filter(Guild.guild_id == guild_id).first()
-
-        if not guild:
-            categories = session.query(Category).filter(Category.default == true()).all()
-            guild = Guild(guild_id=guild_id, categories=categories)
-            session.add(guild)
-            session.commit()
-
-        return guild
-
     def order_melons(self, melons: List[Melon]) -> Tuple[List[Melon], List[Melon], List[Melon]]:
         melons = sorted(melons, key=lambda m: m.key)
         melons = sorted(melons, key=lambda m: m.uses)
@@ -64,7 +53,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Search through a wide array of Melons with keywords and get the information you need!")
     async def melon(self, ctx: commands.Context, *, search=""):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
         melons = session.query(Melon).filter(or_(Melon.guild_id == guild.guild_id,
                                                  Melon.category_id.in_(c.category_id for c in guild.categories))).all()
 
@@ -157,7 +146,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Get the RAW markdown version of a Melon.")
     async def rawmelon(self, ctx: commands.Context, *, key):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
 
         melon = session.query(Melon).filter(
             and_(func.lower(Melon.key) == key.lower(),
@@ -189,7 +178,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Display the enabled/disabled categories for this guild.")
     async def meloncats(self, ctx: commands.Context):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
         enabled = [category.name for category in guild.categories]
 
         disabled_categories = session.query(Category).filter(
@@ -264,7 +253,7 @@ class MelonCog(commands.Cog):
 
             await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added Melon '{key}' to the global Melons!")
         else:
-            guild = self.get_guild(ctx.guild.id)
+            guild = self.bot.get_guild(ctx.guild.id)
 
             if not guild.melon_role:
                 await ctx.send(f"<{EMOJIS['XMARK']}> Custom Melons for this guild haven't been enabled!")
@@ -306,7 +295,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Add tags to a Melon.")
     async def addtags(self, ctx: commands.Context, *, key: str = ""):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
 
         if ctx.author.id not in AUTHORIZED_USERS:
             if not guild.melon_role:
@@ -354,7 +343,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Delete a Melon.")
     async def delmelon(self, ctx: commands.Context, *, key: str):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
 
         if ctx.author.id not in AUTHORIZED_USERS:
             if not guild.melon_role:
@@ -406,7 +395,7 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Get the Melon statistics for all Melons available or just those in this server.")
     async def melonstats(self, ctx, limit=False):
-        guild = self.get_guild(ctx.guild.id)
+        guild = self.bot.get_guild(ctx.guild.id)
 
         if ctx.author.id not in AUTHORIZED_USERS:
             if not guild.melon_role:
