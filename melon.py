@@ -6,11 +6,11 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands
+from sqlalchemy.sql.expression import true
 
 from const import MAINTAINER, VERSION
 from database.database import session
 from database.models import Category, Guild
-from sqlalchemy.sql.expression import true
 
 
 class Melon(commands.Bot):
