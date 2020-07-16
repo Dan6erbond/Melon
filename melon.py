@@ -62,7 +62,7 @@ class Melon(commands.Bot):
 
 
 extensions = ["cogs.util_cog", "cogs.poll_cog", "cogs.user_cog",
-              "cogs.reaction_role_cog", "cogs.melon_cog"]
+              "cogs.reaction_role_cog", "cogs.melon_cog", "cogs.melon_categories_cog"]
 
 if __name__ == "__main__":
     bot = Melon()

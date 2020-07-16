@@ -404,19 +404,6 @@ class MelonCog(commands.Cog):
                 session.commit()
                 await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed Melon '{melon}'!")
 
-    @commands.command(help="Add a Melon category.")
-    @commands.check(is_authorized)
-    async def addcat(self, ctx: commands.Context, *, cat: str):
-        category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
-
-        if category:
-            await ctx.send(f"<{EMOJIS['XMARK']}> '{cat}' is already a category in the Melons!")
-        else:
-            category = Category(name=cat)
-            session.add(category)
-            session.commit()
-            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added '{cat}' as a category in the Melons!")
-
     @commands.command(help="Get the Melon statistics for all Melons available or just those in this server.")
     async def melonstats(self, ctx, limit=False):
         guild = self.get_guild(ctx.guild.id)
