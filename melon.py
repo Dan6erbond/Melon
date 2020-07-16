@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands
 from sqlalchemy.sql.expression import true
 
+from cmds import HelpCommand
 from const import MAINTAINER, VERSION
 from database.database import session
 from database.models import Category, Guild
@@ -18,6 +19,7 @@ class Melon(commands.Bot):
         super().__init__(
             "!",
             description="Dan6erbond's take on Discord utility bots with Melons.",
+            help_command=HelpCommand(),
             **options)
 
     async def on_ready(self):
