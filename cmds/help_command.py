@@ -119,6 +119,10 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send("Test string.")
         return super().command_not_found(string)
 
+        top_cmds = '\n'.join([f"`{self.get_cmd_string(cmd['cmd'])}`" for cmd in results][:3])
+        await self.get_destination().send(f"No command called \"{string}\" found. " +
+                                          f"Maybe you meant?\n\n{top_cmds}")
+
     async def subcommand_not_found(self, command, string):
         print("Subcommand not found:", command, string)
         return await super().subcommand_not_found(command, string)
