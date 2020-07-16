@@ -1,1 +1,1 @@
-from .checks import is_pinned
+from .checks import is_pinned, is_authorized
