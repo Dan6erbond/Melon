@@ -106,9 +106,14 @@ class HelpCommand(commands.HelpCommand):
         print("Group help:", group)
         return await super().send_group_help(group)
 
-    async def send_command_help(self, command):
-        print("Command help:", command)
-        return await super().send_command_help(command)
+    async def send_command_help(self, command: commands.Command):
+        embed = self.embed
+
+        embed.add_field(name=f"`{self.get_cmd_string(command)}`",
+                        value=command.help if command.help else command.brief,
+                        inline=False)
+
+        await self.get_destination().send(embed=embed)
 
     async def command_not_found(self, string):
         await self.context.send("Test string.")
