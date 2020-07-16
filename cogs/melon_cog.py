@@ -11,6 +11,7 @@ import helpers.fuzzle as fuzzle
 from const import AUTHORIZED_USERS, EMOJIS
 from database.database import session
 from database.models import Category, Guild, Melon, Tag
+from helpers import is_authorized
 
 if TYPE_CHECKING:
     from melon import Melon
@@ -271,7 +272,7 @@ class MelonCog(commands.Cog):
 
             roles = [role.id for role in ctx.author.roles]
             if guild.melon_role not in roles:
-                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to create Melons in this guild!")
+                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to edit Melons in this guild!")
                 return
 
             if not arg:
@@ -305,6 +306,18 @@ class MelonCog(commands.Cog):
 
     @commands.command(help="Add tags to a Melon.")
     async def addtags(self, ctx: commands.Context, *, key: str = ""):
+        guild = self.get_guild(ctx.guild.id)
+
+        if ctx.author.id not in AUTHORIZED_USERS:
+            if not guild.melon_role:
+                await ctx.send(f"<{EMOJIS['XMARK']}> Custom Melons for this guild haven't been enabled!")
+                return
+
+            roles = [role.id for role in ctx.author.roles]
+            if guild.melon_role not in roles:
+                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to edit Melons in this guild!")
+                return
+
         if not key:
             key = await self.ask_prompt(ctx, "❓ What is the key used for the Melon?")
             if not key:
@@ -312,10 +325,10 @@ class MelonCog(commands.Cog):
             else:
                 key = key.lower()
 
-        guild = self.get_guild(ctx.guild.id)
-
         if ctx.author.id in AUTHORIZED_USERS:
-            melon = session.query(Melon).filter(func.lower(Melon.key) == key).first()
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     or_(Melon.guild_id == guild.guild_id, Melon.guild_id.is_(None)))).first()
         else:
             melon = session.query(Melon).filter(
                 and_(func.lower(Melon.key) == key,
@@ -338,6 +351,93 @@ class MelonCog(commands.Cog):
             melon.tags.append(tag)
         session.commit()
         await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added tags `{', '.join(tags)}` to Melon '{melon.key}'!")
+
+    @commands.command(help="Delete a Melon.")
+    async def delmelon(self, ctx: commands.Context, *, key: str):
+        guild = self.get_guild(ctx.guild.id)
+
+        if ctx.author.id not in AUTHORIZED_USERS:
+            if not guild.melon_role:
+                await ctx.send(f"<{EMOJIS['XMARK']}> Custom Melons for this guild haven't been enabled!")
+                return
+
+            roles = [role.id for role in ctx.author.roles]
+            if guild.melon_role not in roles:
+                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to delete Melons in this guild!")
+                return
+
+        if not key:
+            key = await self.ask_prompt(ctx, "❓ What is the key used for the Melon?")
+            if not key:
+                return
+            else:
+                key = key.lower()
+
+        if ctx.author.id in AUTHORIZED_USERS:
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     or_(Melon.guild_id == guild.guild_id, Melon.guild_id.is_(None)))).first()
+        else:
+            melon = session.query(Melon).filter(
+                and_(func.lower(Melon.key) == key,
+                     Melon.guild_id == guild.guild_id)).first()
+
+        if not melon:
+            await ctx.send(f"<{EMOJIS['XMARK']}> Melon '{key}' doesn't exist!")
+            return
+
+        message = await ctx.send(f"❓ Are you sure you want to remove {melon} from the Melons?")
+        await message.add_reaction(EMOJIS['CHECK'])
+        await message.add_reaction(EMOJIS['XMARK'])
+
+        try:
+            reaction = await self.bot.wait_for("reaction_add",
+                                               check=lambda r, u: u.id == ctx.author.id and r.message.id == message.id,
+                                               timeout=2 * 60)
+        except asyncio.exceptions.TimeoutError:
+            await ctx.send(f"<{EMOJIS['XMARK']}> That took too long! " +
+                           "You can restart the process by calling this command again.")
+            return
+        finally:
+            if reaction[0].custom_emoji and reaction[0].emoji.id == int(EMOJIS['CHECK'].split(":")[2]):
+                melon.delete()
+                session.commit()
+                await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed Melon '{melon}'!")
+
+    @commands.command(help="Add a Melon category.")
+    @commands.check(is_authorized)
+    async def addcat(self, ctx: commands.Context, *, cat: str):
+        category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
+
+        if category:
+            await ctx.send(f"<{EMOJIS['XMARK']}> '{cat}' is already a category in the Melons!")
+        else:
+            category = Category(name=cat)
+            session.add(category)
+            session.commit()
+            await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added '{cat}' as a category in the Melons!")
+
+    @commands.command(help="Get the Melon statistics for all Melons available or just those in this server.")
+    async def melonstats(self, ctx, limit=False):
+        guild = self.get_guild(ctx.guild.id)
+
+        if ctx.author.id not in AUTHORIZED_USERS:
+            if not guild.melon_role:
+                await ctx.send(f"<{EMOJIS['XMARK']}> Custom Melons for this guild haven't been enabled!")
+                return
+
+            roles = [role.id for role in ctx.author.roles]
+            if guild.melon_role not in roles:
+                await ctx.send(f"<{EMOJIS['XMARK']}> You aren't authorized to administrate Melons in this guild!")
+                return
+
+            melons = session.query(Melon).filter(or_(Melon.guild_id == guild.guild_id,
+                                                     Melon.category_id.in_(c.category_id for c in guild.categories))).all()
+        else:
+            melons = session.query(Melon).all()
+
+        stats = [f"{melon.key} [{melon.uses}]" for melon in melons]
+        await ctx.send(f"**Available Melons and their usage:**\n\n{stats}")
 
 
 def setup(bot: 'Melon'):
