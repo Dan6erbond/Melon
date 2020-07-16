@@ -128,5 +128,6 @@ class HelpCommand(commands.HelpCommand):
         return await super().on_help_command_error(ctx, error)
 
     async def send_error_message(self, error):
-        print("Error message:", type(error), error)
-        return await super().send_error_message(error)
+        if error:
+            print("Error message:", type(error), error)
+            return await super().send_error_message(error)
