@@ -50,7 +50,7 @@ class MelonCategoriesCog(commands.Cog):
             return
         finally:
             if reaction[0].custom_emoji and reaction[0].emoji.id == int(EMOJIS['CHECK'].split(":")[2]):
-                category.delete()
+                session.delete(category)
                 session.commit()
                 await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed '{cat}' as a category in the Melons!")
 
