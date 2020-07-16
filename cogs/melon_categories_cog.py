@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 from sqlalchemy import func
@@ -24,6 +26,33 @@ class MelonCategoriesCog(commands.Cog):
             session.add(category)
             session.commit()
             await ctx.send(f"<{EMOJIS['CHECK']}> Successfully added '{cat}' as a category in the Melons!")
+
+    @commands.command(help="Delete a Melon category.")
+    @commands.check(is_authorized)
+    async def delcat(self, ctx, cat):
+        category = session.query(Category).filter(func.lower(Category.name) == cat.lower()).first()
+
+        if not category:
+            await ctx.send(f"<{EMOJIS['XMARK']}> '{cat}' isn't a category in the Melons!")
+            return
+
+        message = await ctx.send(f"❓ Are you sure you want to remove {cat} from the Melons?")
+        await message.add_reaction(EMOJIS['CHECK'])
+        await message.add_reaction(EMOJIS['XMARK'])
+
+        try:
+            reaction = await self.bot.wait_for("reaction_add",
+                                               check=lambda r, u: u.id == ctx.author.id and r.message.id == message.id,
+                                               timeout=2 * 60)
+        except asyncio.exceptions.TimeoutError:
+            await ctx.send(f"<{EMOJIS['XMARK']}> That took too long! " +
+                           "You can restart the process by calling this command again.")
+            return
+        finally:
+            if reaction[0].custom_emoji and reaction[0].emoji.id == int(EMOJIS['CHECK'].split(":")[2]):
+                category.delete()
+                session.commit()
+                await ctx.send(f"<{EMOJIS['CHECK']}> Successfully removed '{cat}' as a category in the Melons!")
 
 
 def setup(bot: 'Melon'):
