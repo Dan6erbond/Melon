@@ -9,7 +9,7 @@ Melon is the open-source rework of the original Melon bot, fully-featured with r
 
 ## Contents
 
-- [Melon-v2](#melon-v2)
+- [Melon](#melon)
   - [Contents](#contents)
   - [Usage](#usage)
     - [Commands](#commands)
@@ -36,6 +36,6 @@ As Melon is open-source under the GPLv3 license, all additions and bug reports i
 
 ## License
 
-Reddify's source is provided under GPLv3.
+Melon's source is provided under GPLv3.
 
 > Copyright ©, RaviAnand Mohabir
