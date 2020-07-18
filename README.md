@@ -12,8 +12,6 @@ Melon is the open-source rework of the original Melon bot, fully-featured with r
 - [Melon](#melon)
   - [Contents](#contents)
   - [Usage](#usage)
-    - [Commands](#commands)
-      - [Admin Features](#admin-features)
   - [Community and Support](#community-and-support)
     - [Contributing](#contributing)
   - [License](#license)
@@ -22,9 +20,7 @@ Melon is the open-source rework of the original Melon bot, fully-featured with r
 
 Melon is a public bot hosted by Dan6erbond and can be invited to any public server via its [invite link](https://discord.com/oauth2/authorize?client_id=563957035763236864&scope=bot).
 
-### Commands
-
-#### Admin Features
+Melon's documentation is available in the [wiki](wiki).
 
 ## Community and Support
 
