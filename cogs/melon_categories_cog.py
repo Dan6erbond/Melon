@@ -63,7 +63,7 @@ class MelonCategoriesCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
             return
 
-        guild = self.bot.get_guild(ctx.guild.id)
+        guild = self.bot.get_db_guild(ctx.guild.id)
 
         category_ids = [cat.category_id for cat in guild.categories]
         if category.category_id in category_ids:
@@ -82,7 +82,7 @@ class MelonCategoriesCog(commands.Cog):
             await ctx.send(f"<{EMOJIS['XMARK']}> Melon category '{cat}' doesn't exist!")
             return
 
-        guild = self.bot.get_guild(ctx.guild.id)
+        guild = self.bot.get_db_guild(ctx.guild.id)
 
         category_ids = [cat.category_id for cat in guild.categories]
         if category.category_id in category_ids:

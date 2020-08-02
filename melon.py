@@ -45,7 +45,7 @@ class Melon(commands.Bot):
 
         return embed
 
-    def get_guild(self, guild_id: int) -> Guild:
+    def get_db_guild(self, guild_id: int) -> Guild:
         guild = session.query(Guild).filter(Guild.guild_id == guild_id).first()
 
         if not guild:
