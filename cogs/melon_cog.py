@@ -41,17 +41,6 @@ class MelonCog(commands.Cog):
 
         return value
 
-    def get_guild(self, guild_id: int) -> Guild:
-        guild = session.query(Guild).filter(Guild.guild_id == guild_id).first()
-
-        if not guild:
-            categories = session.query(Category).filter(Category.default == true()).all()
-            guild = Guild(guild_id=guild_id, categories=categories)
-            session.add(guild)
-            session.commit()
-
-        return guild
-
     def order_melons(self, melons: List[Melon]) -> Tuple[List[Melon], List[Melon], List[Melon]]:
         melons = sorted(melons, key=lambda m: m.key)
         melons = sorted(melons, key=lambda m: m.uses)
