@@ -13,6 +13,9 @@ from const import MAINTAINER, VERSION
 from database.database import session
 from database.models import Category, Guild
 
+intents = discord.Intents.default()
+intents.members = True
+
 
 class Melon(commands.Bot):
     def __init__(self, **options):
@@ -20,6 +23,7 @@ class Melon(commands.Bot):
             "!",
             description="Dan6erbond's take on Discord utility bots with Melons.",
             help_command=HelpCommand(),
+            intents=intents,
             **options)
 
     async def on_ready(self):
